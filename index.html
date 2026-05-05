@@ -20,10 +20,43 @@
             padding: 20px;
         }
         
+        /* Language Toggle */
+        .language-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: white;
+            border-radius: 25px;
+            padding: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 5px;
+        }
+        
+        .lang-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .lang-btn:hover {
+            background: #f1f3f4;
+        }
+        
+        .lang-btn.active {
+            background: #3498db;
+            color: white;
+        }
+        
         /* GPC Clock Widget */
         .gpc-clock {
             max-width: 460px;
-            margin: 30px auto;
+            margin: 30px auto 20px auto;
             background: white;
             border-radius: 16px;
             padding: 32px 20px;
@@ -192,6 +225,34 @@
         
         .calculate-btn:hover {
             background: #2980b9;
+        }
+        
+        /* Scroll indicator */
+        .scroll-indicator {
+            text-align: center;
+            margin: 20px 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .scroll-indicator .arrow {
+            font-size: 2rem;
+            display: block;
+            margin: 10px auto;
+            color: #3498db;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
         }
         
         /* Google Maps Button */
@@ -509,6 +570,15 @@
                 padding: 15px;
             }
             
+            .language-toggle {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin: 0 auto 20px auto;
+                justify-content: center;
+                width: fit-content;
+            }
+            
             .gpc-time {
                 font-size: 3rem;
             }
@@ -530,26 +600,39 @@
     </style>
 </head>
 <body>
+    <!-- Language Toggle -->
+    <div class="language-toggle">
+        <button class="lang-btn active" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="ka">KA</button>
+        <button class="lang-btn" data-lang="ru">RU</button>
+    </div>
+    
     <div class="container">
         <!-- GPC Clock Widget -->
         <div class="gpc-clock" id="gpc-clock">
-            <div class="gpc-label">GPC UNIVERSAL TIME</div>
+            <div class="gpc-label" data-i18n="gpcLabel">GPC UNIVERSAL TIME</div>
             <div class="gpc-time" id="gpc-time">00:00</div>
             <div class="gpc-period" id="gpc-period">Napa</div>
             <div class="gregorian" id="gregorian">2026-05-05</div>
         </div>
         
+        <!-- Scroll indicator after clock -->
+        <div class="scroll-indicator">
+            <div class="arrow">↓</div>
+            <div data-i18n="scrollHint">Scroll down to plan your route</div>
+        </div>
+        
         <!-- Metro Lines -->
         <div class="line-section">
-            <h2 class="section-title">Metro Lines</h2>
+            <h2 class="section-title" data-i18n="metroLines">Metro Lines</h2>
             <hr>
             
             <!-- Line 1 -->
             <div class="line-header">
                 <div class="line-color line1-color"></div>
-                <div class="line-title">Line 1 (Akhmeteli-Varketili)</div>
+                <div class="line-title" data-i18n="line1Title">Line 1 (Akhmeteli-Varketili)</div>
             </div>
-            <div class="line-stats">16 stations • 19.6 km • 32 min end-to-end</div>
+            <div class="line-stats" data-i18n="line1Stats">16 stations • 19.6 km • 32 min end-to-end</div>
             <div class="stations" id="line1-stations">
                 <!-- Stations populated by JS -->
             </div>
@@ -559,71 +642,225 @@
             <!-- Line 2 -->
             <div class="line-header">
                 <div class="line-color line2-color"></div>
-                <div class="line-title">Line 2 (Saburtalo)</div>
+                <div class="line-title" data-i18n="line2Title">Line 2 (Saburtalo)</div>
             </div>
-            <div class="line-stats">7 stations • 13.4 km • 22 min end-to-end</div>
+            <div class="line-stats" data-i18n="line2Stats">7 stations • 13.4 km • 22 min end-to-end</div>
             <div class="stations" id="line2-stations">
                 <!-- Stations populated by JS -->
             </div>
         </div>
         
         <!-- Route Planning -->
-        <div class="route-section">
-            <h2 class="section-title">Route Planning (GPC Time)</h2>
+        <div class="route-section" id="route-planning">
+            <h2 class="section-title" data-i18n="routePlanning">Route Planning (GPC Time)</h2>
             
             <div class="form-group">
-                <label>Start Station</label>
+                <label data-i18n="startStation">Start Station</label>
                 <select id="start-station">
-                    <option value="">Select start station</option>
+                    <option value="" data-i18n="selectStart">Select start station</option>
                 </select>
             </div>
             
             <div class="form-group">
-                <label>Destination Station</label>
+                <label data-i18n="destStation">Destination Station</label>
                 <select id="end-station">
-                    <option value="">Select destination station</option>
+                    <option value="" data-i18n="selectDest">Select destination station</option>
                 </select>
             </div>
             
             <div class="form-group">
-                <label>Departure Time:</label>
+                <label data-i18n="departureTime">Departure Time:</label>
                 <div class="departure-time" id="departure-display">8:50 <span class="period-tag period-alpha">Alpha</span></div>
             </div>
             
-            <button class="calculate-btn" id="calculate-route">Calculate GPC Route</button>
+            <button class="calculate-btn" id="calculate-route" data-i18n="calculateRoute">Calculate GPC Route</button>
         </div>
         
         <!-- Results Section -->
         <div class="results-section" id="results-section">
-            <h2 class="section-title">Your Metro Route</h2>
+            <h2 class="section-title" data-i18n="yourRoute">Your Metro Route</h2>
             <div class="route-details" id="route-details">
                 <!-- Route details populated by JS -->
             </div>
-            <a href="#" class="maps-btn" id="google-maps-btn">🗺️ Open Google Maps</a>
+            <a href="#" class="maps-btn" id="google-maps-btn" data-i18n="openMaps">🗺️ Open Google Maps</a>
         </div>
         
         <!-- Share Section -->
         <div class="share-section">
-            <h2 class="share-title">💬 Share Your Metro Experience!</h2>
-            <p>Using GPC time? Share your Metro journey experience with Matka Messenger!</p>
-            <p>Feedback, issues, or praise – connect with other Metro passengers.</p>
-            <a href="https://eafifon-ux.github.io/Matka/" class="messenger-btn" target="_blank">🚀 Open Matka Messenger</a>
+            <h2 class="share-title">💬 <span data-i18n="shareExperience">Share Your Metro Experience!</span></h2>
+            <p data-i18n="shareText1">Using GPC time? Share your Metro journey experience with Matka Messenger!</p>
+            <p data-i18n="shareText2">Feedback, issues, or praise – connect with other Metro passengers.</p>
+            <a href="https://eafifon-ux.github.io/Matka/" class="messenger-btn" target="_blank" data-i18n="openMessenger">🚀 Open Matka Messenger</a>
         </div>
         
         <!-- Metro Information -->
         <div class="info-section">
-            <h2 class="section-title">Metro Information (GPC/UTC+6)</h2>
+            <h2 class="section-title" data-i18n="metroInfo">Metro Information (GPC/UTC+6)</h2>
             <ul class="info-list">
-                <li>• <strong>First train:</strong> 01:00 <span class="period-tag period-mike">Mike</span></li>
-                <li>• <strong>Last train:</strong> 18:00 <span class="period-tag period-echo">Echo</span></li>
-                <li>• <strong>Fare:</strong> 1 GEL per ride</li>
-                <li>• <strong>Free transfers</strong> between lines</li>
-                <li>• <strong>Contact:</strong> +995 32 2 34 56 78</li>
+                <li data-i18n="firstTrain">• <strong>First train:</strong> 01:00 <span class="period-tag period-mike">Mike</span></li>
+                <li data-i18n="lastTrain">• <strong>Last train:</strong> 18:00 <span class="period-tag period-echo">Echo</span></li>
+                <li data-i18n="fare">• <strong>Fare:</strong> 1 GEL per ride</li>
+                <li data-i18n="transfers">• <strong>Free transfers</strong> between lines</li>
+                <li data-i18n="contact">• <strong>Contact:</strong> +995 32 2 34 56 78</li>
             </ul>
         </div>
     </div>
 
 <script>
+// ==================== LANGUAGE SYSTEM ====================
+const translations = {
+    en: {
+        gpcLabel: "GPC UNIVERSAL TIME",
+        scrollHint: "Scroll down to plan your route",
+        metroLines: "Metro Lines",
+        line1Title: "Line 1 (Akhmeteli-Varketili)",
+        line1Stats: "16 stations • 19.6 km • 32 min end-to-end",
+        line2Title: "Line 2 (Saburtalo)",
+        line2Stats: "7 stations • 13.4 km • 22 min end-to-end",
+        routePlanning: "Route Planning (GPC Time)",
+        startStation: "Start Station",
+        selectStart: "Select start station",
+        destStation: "Destination Station",
+        selectDest: "Select destination station",
+        departureTime: "Departure Time:",
+        calculateRoute: "Calculate GPC Route",
+        yourRoute: "Your Metro Route",
+        travelTime: "Travel Time:",
+        minutes: "minutes",
+        currentPeriod: "Current GPC Period:",
+        departure: "Departure:",
+        arrival: "Arrival:",
+        totalStops: "Total Stops:",
+        routeType: "Route Type:",
+        direct: "Direct",
+        transfer: "Transfer",
+        openMaps: "🗺️ Open Google Maps",
+        shareExperience: "Share Your Metro Experience!",
+        shareText1: "Using GPC time? Share your Metro journey experience with Matka Messenger!",
+        shareText2: "Feedback, issues, or praise – connect with other Metro passengers.",
+        openMessenger: "🚀 Open Matka Messenger",
+        metroInfo: "Metro Information (GPC/UTC+6)",
+        firstTrain: "• <strong>First train:</strong> 01:00 <span class='period-tag period-mike'>Mike</span>",
+        lastTrain: "• <strong>Last train:</strong> 18:00 <span class='period-tag period-echo'>Echo</span>",
+        fare: "• <strong>Fare:</strong> 1 GEL per ride",
+        transfers: "• <strong>Free transfers</strong> between lines",
+        contact: "• <strong>Contact:</strong> +995 32 2 34 56 78"
+    },
+    ka: {
+        gpcLabel: "GPC უნივერსალური დრო",
+        scrollHint: "გადადით ქვემოთ მარშრუტის დასაგეგმად",
+        metroLines: "მეტროს ხაზები",
+        line1Title: "ხაზი 1 (ახმეტელი-ვარკეთილი)",
+        line1Stats: "16 სადგური • 19.6 კმ • 32 წთ დასასრულამდე",
+        line2Title: "ხაზი 2 (საბურთალო)",
+        line2Stats: "7 სადგური • 13.4 კმ • 22 წთ დასასრულამდე",
+        routePlanning: "მარშრუტის დაგეგმვა (GPC დრო)",
+        startStation: "საწყისი სადგური",
+        selectStart: "აირჩიეთ საწყისი სადგური",
+        destStation: "დანიშნულების სადგური",
+        selectDest: "აირჩიეთ დანიშნულების სადგური",
+        departureTime: "გასვლის დრო:",
+        calculateRoute: "გამოთვალეთ GPC მარშრუტი",
+        yourRoute: "თქვენი მეტროს მარშრუტი",
+        travelTime: "მგზავრობის დრო:",
+        minutes: "წუთი",
+        currentPeriod: "მიმდინარე GPC პერიოდი:",
+        departure: "გასვლა:",
+        arrival: "ჩამოსვლა:",
+        totalStops: "სულ გაჩერება:",
+        routeType: "მარშრუტის ტიპი:",
+        direct: "პირდაპირი",
+        transfer: "გადაჯდომა",
+        openMaps: "🗺️ გახსენით Google Maps",
+        shareExperience: "💬 გააზიარეთ თქვენი მეტროს გამოცდილება!",
+        shareText1: "იყენებთ GPC დროს? გააზიარეთ თქვენი მეტროს მგზავრობის გამოცდილება Matka Messenger-ში!",
+        shareText2: "გამოხმაურება, პრობლემები ან დადებითი შეფასება – დაუკავშირდით სხვა მეტროს მგზავრებს.",
+        openMessenger: "🚀 გახსენით Matka Messenger",
+        metroInfo: "მეტროს ინფორმაცია (GPC/UTC+6)",
+        firstTrain: "• <strong>პირველი მატარებელი:</strong> 01:00 <span class='period-tag period-mike'>მაიკი</span>",
+        lastTrain: "• <strong>უკანასკნელი მატარებელი:</strong> 18:00 <span class='period-tag period-echo'>ექო</span>",
+        fare: "• <strong>სატარიფო:</strong> 1 GEL ერთი მგზავრობისთვის",
+        transfers: "• <strong>უფასო გადაჯდომა</strong> ხაზებს შორის",
+        contact: "• <strong>კონტაქტი:</strong> +995 32 2 34 56 78"
+    },
+    ru: {
+        gpcLabel: "УНИВЕРСАЛЬНОЕ ВРЕМЯ GPC",
+        scrollHint: "Прокрутите вниз для планирования маршрута",
+        metroLines: "Линии метро",
+        line1Title: "Линия 1 (Ахметели-Варкетили)",
+        line1Stats: "16 станций • 19.6 км • 32 мин от начала до конца",
+        line2Title: "Линия 2 (Сабуртало)",
+        line2Stats: "7 станций • 13.4 км • 22 мин от начала до конца",
+        routePlanning: "Планирование маршрута (Время GPC)",
+        startStation: "Начальная станция",
+        selectStart: "Выберите начальную станцию",
+        destStation: "Станция назначения",
+        selectDest: "Выберите станцию назначения",
+        departureTime: "Время отправления:",
+        calculateRoute: "Рассчитать маршрут GPC",
+        yourRoute: "Ваш маршрут метро",
+        travelTime: "Время в пути:",
+        minutes: "минут",
+        currentPeriod: "Текущий период GPC:",
+        departure: "Отправление:",
+        arrival: "Прибытие:",
+        totalStops: "Всего остановок:",
+        routeType: "Тип маршрута:",
+        direct: "Прямой",
+        transfer: "С пересадкой",
+        openMaps: "🗺️ Открыть Google Maps",
+        shareExperience: "💬 Поделитесь своим опытом в метро!",
+        shareText1: "Используете время GPC? Поделитесь своим опытом поездки в метро в Matka Messenger!",
+        shareText2: "Отзывы, проблемы или похвалы – общайтесь с другими пассажирами метро.",
+        openMessenger: "🚀 Открыть Matka Messenger",
+        metroInfo: "Информация о метро (GPC/UTC+6)",
+        firstTrain: "• <strong>Первый поезд:</strong> 01:00 <span class='period-tag period-mike'>Майк</span>",
+        lastTrain: "• <strong>Последний поезд:</strong> 18:00 <span class='period-tag period-echo'>Эхо</span>",
+        fare: "• <strong>Стоимость:</strong> 1 GEL за поездку",
+        transfers: "• <strong>Бесплатные пересадки</strong> между линиями",
+        contact: "• <strong>Контакт:</strong> +995 32 2 34 56 78"
+    }
+};
+
+let currentLang = 'en';
+
+function setLanguage(lang) {
+    currentLang = lang;
+    
+    // Update all elements with data-i18n
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[lang][key]) {
+            if (element.tagName === 'INPUT' || element.tagName === 'SELECT' || element.tagName === 'TEXTAREA') {
+                element.placeholder = translations[lang][key];
+            } else if (element.tagName === 'OPTION') {
+                element.textContent = translations[lang][key];
+            } else {
+                element.innerHTML = translations[lang][key];
+            }
+        }
+    });
+    
+    // Update language buttons
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        if (btn.dataset.lang === lang) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Update route results if they exist
+    const resultsSection = document.getElementById('results-section');
+    if (resultsSection.classList.contains('active')) {
+        const startSelect = document.getElementById('start-station');
+        const endSelect = document.getElementById('end-station');
+        if (startSelect.value && endSelect.value) {
+            document.getElementById('calculate-route').click();
+        }
+    }
+}
+
 // ==================== GPC CLOCK ====================
 function getGPCClock() {
     const now = new Date();
@@ -659,7 +896,6 @@ function updateClock() {
     const hour = parseInt(data.time.split(':')[0]);
     const minute = parseInt(data.time.split(':')[1]);
     
-    // Format time without leading zero for single digit hours
     const formattedTime = `${hour}:${String(minute).padStart(2, '0')}`;
     document.getElementById('gpc-time').textContent = formattedTime;
     
@@ -675,7 +911,7 @@ const metroData = {
     lines: [
         {
             id: 1,
-            name: "Line 1: Akhmeteli-Varketili",
+            name: "Line 1 (Akhmeteli-Varketili)",
             color: "#da291c",
             stations: [
                 "Akhmeteli Teatri", "Sarajishvili", "Guramishvili", "Ghrmaghele",
@@ -686,7 +922,7 @@ const metroData = {
         },
         {
             id: 2,
-            name: "Line 2: Saburtalo",
+            name: "Line 2 (Saburtalo)",
             color: "#0066b3",
             stations: [
                 "Vazha Pshavela", "Delisi", "University", "Rustaveli",
@@ -885,10 +1121,39 @@ document.addEventListener('DOMContentLoaded', function() {
     updateClock();
     setInterval(updateClock, 1000);
     
-    // Make clock clickable
-    document.getElementById('gpc-clock').addEventListener('click', function() {
-        window.open('https://www.gpc364.com/p/today.html?m=1&m=1', '_blank');
+    // Language toggle buttons
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const lang = this.dataset.lang;
+            setLanguage(lang);
+        });
     });
+    
+    // Set initial language
+    setLanguage('en');
+    
+    // GPC clock click scrolls to route planning
+    document.getElementById('gpc-clock').addEventListener('click', function() {
+        document.getElementById('route-planning').scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+    });
+    
+    // Add link to GPC Today page
+    function addGPCTodayLink() {
+        const todayLink = document.createElement('div');
+        todayLink.innerHTML = `
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="https://www.gpc364.com/p/today.html" 
+                   target="_blank" 
+                   style="color: #3498db; text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 5px;">
+                    📅 Check today's GPC time details
+                </a>
+            </div>
+        `;
+        return todayLink;
+    }
     
     // Initialize stations
     const line1El = document.getElementById('line1-stations');
@@ -963,7 +1228,11 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (!endSelect.value) {
                 endSelect.value = stationName;
             } else {
-                if (confirm(`Set "${stationName}" as start station?`)) {
+                const question = currentLang === 'en' ? `Set "${stationName}" as start station?` :
+                                currentLang === 'ka' ? `დააყენოთ "${stationName}" საწყის სადგურად?` :
+                                `Установить "${stationName}" как начальную станцию?`;
+                
+                if (confirm(question)) {
                     startSelect.value = stationName;
                 } else {
                     endSelect.value = stationName;
@@ -982,12 +1251,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const end = endSelect.value;
         
         if (!start || !end) {
-            alert("Please select both start and destination stations.");
+            const alertMsg = currentLang === 'en' ? "Please select both start and destination stations." :
+                           currentLang === 'ka' ? "გთხოვთ აირჩიოთ როგორც საწყისი, ასევე დანიშნულების სადგური." :
+                           "Пожалуйста, выберите как начальную, так и конечную станции.";
+            alert(alertMsg);
             return;
         }
         
         if (start === end) {
-            alert("Start and destination cannot be the same.");
+            const alertMsg = currentLang === 'en' ? "Start and destination cannot be the same." :
+                           currentLang === 'ka' ? "საწყისი და დანიშნულება არ შეიძლება იყოს ერთი და იგივე." :
+                           "Начальная и конечная станции не могут совпадать.";
+            alert(alertMsg);
             return;
         }
         
@@ -1019,43 +1294,46 @@ document.addEventListener('DOMContentLoaded', function() {
         routeHTML += createMetroTimeline(route, start, end);
         
         // Add travel summary
+        const routeTypeText = route.type === 'direct' ? translations[currentLang].direct : translations[currentLang].transfer;
+        
         routeHTML += `
             <div class="route-summary">
                 <div class="route-summary-row">
-                    <span><strong>Travel Time:</strong></span>
-                    <span>${travelTime} minutes</span>
+                    <span><strong>${translations[currentLang].travelTime}</strong></span>
+                    <span>${travelTime} ${translations[currentLang].minutes}</span>
                 </div>
                 <div class="route-summary-row">
-                    <span><strong>Current GPC Period:</strong></span>
+                    <span><strong>${translations[currentLang].currentPeriod}</strong></span>
                     <span><span class="period-tag ${data.periodClass}">${data.period}</span></span>
                 </div>
                 <div class="route-summary-row">
-                    <span><strong>Departure:</strong></span>
+                    <span><strong>${translations[currentLang].departure}</strong></span>
                     <span>${departureTime} Sierra</span>
                 </div>
                 <div class="route-summary-row">
-                    <span><strong>Arrival:</strong></span>
+                    <span><strong>${translations[currentLang].arrival}</strong></span>
                     <span>${arrivalTime} Sierra</span>
                 </div>
                 ${route.type === 'direct' ? 
                     `<div class="route-summary-row">
-                        <span><strong>Total Stops:</strong></span>
+                        <span><strong>${translations[currentLang].totalStops}</strong></span>
                         <span>${route.stops.length}</span>
                     </div>` : 
                     `<div class="route-summary-row">
-                        <span><strong>Total Stops:</strong></span>
+                        <span><strong>${translations[currentLang].totalStops}</strong></span>
                         <span>${route.firstLegStops.length + route.secondLegStops.length}</span>
                     </div>`
                 }
                 <div class="route-summary-row">
-                    <span><strong>Route Type:</strong></span>
-                    <span>${route.type === 'direct' ? 'Direct' : 'Transfer'}</span>
+                    <span><strong>${translations[currentLang].routeType}</strong></span>
+                    <span>${routeTypeText}</span>
                 </div>
             </div>
         `;
         
         // Display results
         document.getElementById('route-details').innerHTML = routeHTML;
+        document.getElementById('route-details').appendChild(addGPCTodayLink());
         document.getElementById('results-section').classList.add('active');
         
         // Update Google Maps button
@@ -1071,9 +1349,22 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('google-maps-btn').target = '_blank';
         }
         
+        // Update Google Maps button text
+        document.getElementById('google-maps-btn').innerHTML = translations[currentLang].openMaps;
+        
         // Scroll to results
         document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
     });
+    
+    // Auto-scroll to route planning on page load
+    setTimeout(() => {
+        if (window.scrollY === 0) {
+            document.getElementById('route-planning').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    }, 1500);
 });
 
 // Station coordinates for Google Maps
