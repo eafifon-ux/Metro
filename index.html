@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metro Georgia - GPC Time Navigation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* GPC Clock Widget */
+        .gpc-clock {
+            max-width: 460px;
+            margin: 30px auto;
+            background: white;
+            border-radius: 16px;
+            padding: 32px 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .gpc-clock:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.12);
+        }
+        
+        .gpc-label {
+            font-size: 1.05rem;
+            color: #666;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        
+        .gpc-time {
+            font-size: 4.2rem;
+            font-weight: 300;
+            letter-spacing: -3px;
+            color: #2c3e50;
+            margin: 12px 0;
+        }
+        
+        .gpc-period {
+            font-size: 1.65rem;
+            font-weight: 600;
+            margin: 8px 0;
+        }
+        
+        .gregorian {
+            margin-top: 18px;
+            font-size: 1.05rem;
+            color: #666;
+        }
+        
+        /* Metro Lines */
+        .line-section {
+            margin: 40px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .line-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .line-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+        
+        .line1-color { background: #da291c; }
+        .line2-color { background: #0066b3; }
+        
+        .line-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .line-stats {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .stations {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .station {
+            padding: 6px 12px;
+            background: #f1f3f4;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            color: #444;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .station:hover {
+            background: #e9ecef;
+        }
+        
+        /* Route Planning */
+        .route-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 40px 0;
+            border: 1px solid #e9ecef;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f1f3f4;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #444;
+        }
+        
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+        }
+        
+        .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .departure-time {
+            display: inline-block;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            color: #2c3e50;
+            border: 1px solid #ddd;
+        }
+        
+        .calculate-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .calculate-btn:hover {
+            background: #2980b9;
+        }
+        
+        /* Google Maps Button */
+        .maps-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+            margin-top: 15px;
+        }
+        
+        .maps-btn:hover {
+            background: #3367d6;
+        }
+        
+        /* Share Section */
+        .share-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 40px 0;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .share-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .messenger-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        
+        .messenger-btn:hover {
+            background: #219955;
+        }
+        
+        /* Metro Info */
+        .info-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 40px 0;
+            border-top: 4px solid #f39c12;
+        }
+        
+        .info-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .info-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .info-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .period-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .period-mike { background: #2ecc71; color: white; }
+        .period-alpha { background: #3498db; color: white; }
+        .period-echo { background: #e74c3c; color: white; }
+        .period-napa { background: #e67e22; color: white; }
+        
+        /* Results */
+        .results-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 40px 0;
+            border: 1px solid #3498db;
+            display: none;
+        }
+        
+        .results-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .route-details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .route-step {
+            margin: 10px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .route-step:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #3498db;
+            font-size: 1.5rem;
+        }
+        
+        /* METRO-STYLE TIMELINE DISPLAY */
+        .metro-timeline {
+            margin: 25px 0;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .metro-timeline-header {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f1f3f4;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .timeline-container {
+            position: relative;
+            margin-left: 30px;
+        }
+        
+        /* Vertical timeline line */
+        .timeline-line {
+            position: absolute;
+            left: 14px;
+            top: 16px;
+            bottom: 16px;
+            width: 2px;
+            background: linear-gradient(to bottom, #da291c 0%, #0066b3 100%);
+            z-index: 1;
+        }
+        
+        /* Transfer line segment */
+        .timeline-line-transfer {
+            position: absolute;
+            left: 14px;
+            width: 2px;
+            background: #f39c12;
+            z-index: 1;
+        }
+        
+        .timeline-station {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            z-index: 2;
+        }
+        
+        .timeline-station:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Station circle */
+        .station-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 3;
+        }
+        
+        /* Special circles */
+        .station-circle.start {
+            background: #3498db;
+            border-color: #2980b9;
+        }
+        
+        .station-circle.line1 {
+            background: #da291c;
+            border-color: #c0392b;
+        }
+        
+        .station-circle.line2 {
+            background: #0066b3;
+            border-color: #0056a3;
+        }
+        
+        .station-circle.end {
+            background: #27ae60;
+            border-color: #219955;
+        }
+        
+        .station-circle.transfer {
+            background: #f39c12;
+            border-color: #e67e22;
+            width: 35px;
+            height: 35px;
+        }
+        
+        /* Station name block */
+        .station-name {
+            margin-left: 20px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            font-size: 0.95rem;
+            color: #2c3e50;
+            flex-grow: 1;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        
+        .station-name.start {
+            background: #e3f2fd;
+            border-color: #bbdefb;
+        }
+        
+        .station-name.end {
+            background: #e8f5e9;
+            border-color: #c8e6c9;
+        }
+        
+        .station-name.transfer {
+            background: #fff3e0;
+            border-color: #ffe0b2;
+            font-weight: 600;
+        }
+        
+        /* Line indicator */
+        .line-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+            margin-right: 8px;
+        }
+        
+        .line-indicator.line1 {
+            background: #da291c;
+        }
+        
+        .line-indicator.line2 {
+            background: #0066b3;
+        }
+        
+        /* Transfer section */
+        .transfer-section {
+            margin: 25px 0;
+            padding: 15px;
+            background: #fff3e0;
+            border-radius: 8px;
+            border: 1px solid #ffe0b2;
+            text-align: center;
+            font-weight: 600;
+            color: #e67e22;
+        }
+        
+        .route-summary {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            margin-top: 20px;
+        }
+        
+        .route-summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        
+        .route-summary-row:last-child {
+            border-bottom: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .gpc-time {
+                font-size: 3rem;
+            }
+            
+            .line-section, .route-section, .share-section, .info-section {
+                padding: 20px;
+            }
+            
+            .timeline-container {
+                margin-left: 20px;
+            }
+            
+            .station-name {
+                margin-left: 15px;
+                padding: 6px 10px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- GPC Clock Widget -->
+        <div class="gpc-clock" id="gpc-clock">
+            <div class="gpc-label">GPC UNIVERSAL TIME</div>
+            <div class="gpc-time" id="gpc-time">00:00</div>
+            <div class="gpc-period" id="gpc-period">Napa</div>
+            <div class="gregorian" id="gregorian">2026-05-05</div>
+        </div>
+        
+        <!-- Metro Lines -->
+        <div class="line-section">
+            <h2 class="section-title">Metro Lines</h2>
+            <hr>
+            
+            <!-- Line 1 -->
+            <div class="line-header">
+                <div class="line-color line1-color"></div>
+                <div class="line-title">Line 1 (Akhmeteli-Varketili)</div>
+            </div>
+            <div class="line-stats">16 stations • 19.6 km • 32 min end-to-end</div>
+            <div class="stations" id="line1-stations">
+                <!-- Stations populated by JS -->
+            </div>
+            
+            <hr style="margin: 25px 0;">
+            
+            <!-- Line 2 -->
+            <div class="line-header">
+                <div class="line-color line2-color"></div>
+                <div class="line-title">Line 2 (Saburtalo)</div>
+            </div>
+            <div class="line-stats">7 stations • 13.4 km • 22 min end-to-end</div>
+            <div class="stations" id="line2-stations">
+                <!-- Stations populated by JS -->
+            </div>
+        </div>
+        
+        <!-- Route Planning -->
+        <div class="route-section">
+            <h2 class="section-title">Route Planning (GPC Time)</h2>
+            
+            <div class="form-group">
+                <label>Start Station</label>
+                <select id="start-station">
+                    <option value="">Select start station</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Destination Station</label>
+                <select id="end-station">
+                    <option value="">Select destination station</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Departure Time:</label>
+                <div class="departure-time" id="departure-display">8:50 <span class="period-tag period-alpha">Alpha</span></div>
+            </div>
+            
+            <button class="calculate-btn" id="calculate-route">Calculate GPC Route</button>
+        </div>
+        
+        <!-- Results Section -->
+        <div class="results-section" id="results-section">
+            <h2 class="section-title">Your Metro Route</h2>
+            <div class="route-details" id="route-details">
+                <!-- Route details populated by JS -->
+            </div>
+            <a href="#" class="maps-btn" id="google-maps-btn">🗺️ Open Google Maps</a>
+        </div>
+        
+        <!-- Share Section -->
+        <div class="share-section">
+            <h2 class="share-title">💬 Share Your Metro Experience!</h2>
+            <p>Using GPC time? Share your Metro journey experience with Matka Messenger!</p>
+            <p>Feedback, issues, or praise – connect with other Metro passengers.</p>
+            <a href="https://eafifon-ux.github.io/Matka/" class="messenger-btn" target="_blank">🚀 Open Matka Messenger</a>
+        </div>
+        
+        <!-- Metro Information -->
+        <div class="info-section">
+            <h2 class="section-title">Metro Information (GPC/UTC+6)</h2>
+            <ul class="info-list">
+                <li>• <strong>First train:</strong> 01:00 <span class="period-tag period-mike">Mike</span></li>
+                <li>• <strong>Last train:</strong> 18:00 <span class="period-tag period-echo">Echo</span></li>
+                <li>• <strong>Fare:</strong> 1 GEL per ride</li>
+                <li>• <strong>Free transfers</strong> between lines</li>
+                <li>• <strong>Contact:</strong> +995 32 2 34 56 78</li>
+            </ul>
+        </div>
+    </div>
+
+<script>
+// ==================== GPC CLOCK ====================
+function getGPCClock() {
+    const now = new Date();
+    let gpcHour = (now.getHours() + 18) % 24;
+    const minute = now.getMinutes();
+    
+    const localHour = (gpcHour + 6) % 24;
+    const totalMinutes = localHour * 60 + minute;
+    
+    let period = 'Napa';
+    let color = '#e67e22';
+    let periodClass = 'period-napa';
+    
+    if (totalMinutes > 360 && totalMinutes <= 720) {
+        period = 'Mike'; color = '#2ecc71'; periodClass = 'period-mike';
+    } else if (totalMinutes > 720 && totalMinutes <= 1080) {
+        period = 'Alpha'; color = '#3498db'; periodClass = 'period-alpha';
+    } else if (totalMinutes > 1080) {
+        period = 'Echo'; color = '#e74c3c'; periodClass = 'period-echo';
+    }
+
+    return {
+        time: String(gpcHour).padStart(2, '0') + ':' + String(minute).padStart(2, '0'),
+        period: period,
+        color: color,
+        periodClass: periodClass,
+        gregorian: '2026-05-05' // Fixed date as requested
+    };
+}
+
+function updateClock() {
+    const data = getGPCClock();
+    const hour = parseInt(data.time.split(':')[0]);
+    const minute = parseInt(data.time.split(':')[1]);
+    
+    // Format time without leading zero for single digit hours
+    const formattedTime = `${hour}:${String(minute).padStart(2, '0')}`;
+    document.getElementById('gpc-time').textContent = formattedTime;
+    
+    const periodEl = document.getElementById('gpc-period');
+    periodEl.textContent = data.period;
+    periodEl.style.color = data.color;
+    
+    document.getElementById('gregorian').textContent = data.gregorian;
+}
+
+// ==================== METRO DATA ====================
+const metroData = {
+    lines: [
+        {
+            id: 1,
+            name: "Line 1: Akhmeteli-Varketili",
+            color: "#da291c",
+            stations: [
+                "Akhmeteli Teatri", "Sarajishvili", "Guramishvili", "Ghrmaghele",
+                "Didube", "Medical University", "Vazha Pshavela", "Republic Square",
+                "Liberty Square", "Avlabari", "300 Aragveli", "Isani",
+                "Samgori", "Varketili III", "Varketili II", "Varketili"
+            ]
+        },
+        {
+            id: 2,
+            name: "Line 2: Saburtalo",
+            color: "#0066b3",
+            stations: [
+                "Vazha Pshavela", "Delisi", "University", "Rustaveli",
+                "Tavisuplebis Moedani", "Samedicino Universiteti", "Saburtalo"
+            ]
+        }
+    ]
+};
+
+// ==================== GET ROUTE WITH STOPS ====================
+function getRouteWithStops(start, end) {
+    const startLine = metroData.lines[0].stations.includes(start) ? 1 : 2;
+    const endLine = metroData.lines[0].stations.includes(end) ? 1 : 2;
+    
+    const line1Stations = metroData.lines[0].stations;
+    const line2Stations = metroData.lines[1].stations;
+    
+    if (startLine === endLine) {
+        const lineStations = startLine === 1 ? line1Stations : line2Stations;
+        const startIndex = lineStations.indexOf(start);
+        const endIndex = lineStations.indexOf(end);
+        
+        if (startIndex < endIndex) {
+            return {
+                type: 'direct',
+                line: startLine,
+                direction: 'forward',
+                stops: lineStations.slice(startIndex + 1, endIndex),
+                transferStation: null
+            };
+        } else {
+            return {
+                type: 'direct',
+                line: startLine,
+                direction: 'reverse',
+                stops: lineStations.slice(endIndex + 1, startIndex).reverse(),
+                transferStation: null
+            };
+        }
+    } else {
+        const transferStation = "Vazha Pshavela";
+        const firstLine = startLine === 1 ? line1Stations : line2Stations;
+        const secondLine = endLine === 1 ? line1Stations : line2Stations;
+        
+        const startIndex = firstLine.indexOf(start);
+        const transferIndex1 = firstLine.indexOf(transferStation);
+        const transferIndex2 = secondLine.indexOf(transferStation);
+        const endIndex = secondLine.indexOf(end);
+        
+        let firstLegStops, secondLegStops;
+        
+        if (startIndex < transferIndex1) {
+            firstLegStops = firstLine.slice(startIndex + 1, transferIndex1);
+        } else {
+            firstLegStops = firstLine.slice(transferIndex1 + 1, startIndex).reverse();
+        }
+        
+        if (transferIndex2 < endIndex) {
+            secondLegStops = secondLine.slice(transferIndex2 + 1, endIndex);
+        } else {
+            secondLegStops = secondLine.slice(endIndex + 1, transferIndex2).reverse();
+        }
+        
+        return {
+            type: 'transfer',
+            firstLine: startLine,
+            secondLine: endLine,
+            transferStation: transferStation,
+            firstLegStops: firstLegStops,
+            secondLegStops: secondLegStops
+        };
+    }
+}
+
+// ==================== CREATE METRO TIMELINE ====================
+function createMetroTimeline(route, start, end) {
+    let timelineHTML = '';
+    
+    if (route.type === 'direct') {
+        const lineClass = route.line === 1 ? 'line1' : 'line2';
+        const lineName = route.line === 1 ? 'Line 1 (Red)' : 'Line 2 (Blue)';
+        
+        timelineHTML = `
+            <div class="metro-timeline">
+                <div class="metro-timeline-header">
+                    <span class="line-indicator ${lineClass}">Line ${route.line}</span>
+                    <span>${lineName}</span>
+                </div>
+                <div class="timeline-container">
+                    <div class="timeline-line" style="height: ${(route.stops.length + 1) * 45}px;"></div>
+                    
+                    <!-- Start station -->
+                    <div class="timeline-station">
+                        <div class="station-circle start"></div>
+                        <div class="station-name start">${start} <span style="color:#666; font-size:0.85rem;">(Start)</span></div>
+                    </div>
+                    
+                    <!-- Intermediate stops -->
+                    ${route.stops.map(stop => `
+                        <div class="timeline-station">
+                            <div class="station-circle ${lineClass}"></div>
+                            <div class="station-name">${stop}</div>
+                        </div>
+                    `).join('')}
+                    
+                    <!-- End station -->
+                    <div class="timeline-station">
+                        <div class="station-circle end"></div>
+                        <div class="station-name end">${end} <span style="color:#666; font-size:0.85rem;">(Destination)</span></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        const firstLineClass = route.firstLine === 1 ? 'line1' : 'line2';
+        const secondLineClass = route.secondLine === 1 ? 'line1' : 'line2';
+        const firstLineName = route.firstLine === 1 ? 'Line 1 (Red)' : 'Line 2 (Blue)';
+        const secondLineName = route.secondLine === 1 ? 'Line 1 (Red)' : 'Line 2 (Blue)';
+        
+        timelineHTML = `
+            <!-- First Line -->
+            <div class="metro-timeline">
+                <div class="metro-timeline-header">
+                    <span class="line-indicator ${firstLineClass}">Line ${route.firstLine}</span>
+                    <span>${firstLineName}</span>
+                </div>
+                <div class="timeline-container">
+                    <div class="timeline-line" style="top: 16px; height: ${(route.firstLegStops.length + 1) * 45}px;"></div>
+                    
+                    <!-- Start station -->
+                    <div class="timeline-station">
+                        <div class="station-circle start"></div>
+                        <div class="station-name start">${start} <span style="color:#666; font-size:0.85rem;">(Start)</span></div>
+                    </div>
+                    
+                    <!-- First line stops -->
+                    ${route.firstLegStops.map(stop => `
+                        <div class="timeline-station">
+                            <div class="station-circle ${firstLineClass}"></div>
+                            <div class="station-name">${stop}</div>
+                        </div>
+                    `).join('')}
+                    
+                    <!-- Transfer station -->
+                    <div class="timeline-station">
+                        <div class="station-circle transfer"></div>
+                        <div class="station-name transfer">${route.transferStation} <span style="color:#666; font-size:0.85rem;">(Transfer)</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Transfer Section -->
+            <div class="transfer-section">
+                🔄 Transfer to Line ${route.secondLine}
+            </div>
+            
+            <!-- Second Line -->
+            <div class="metro-timeline">
+                <div class="metro-timeline-header">
+                    <span class="line-indicator ${secondLineClass}">Line ${route.secondLine}</span>
+                    <span>${secondLineName}</span>
+                </div>
+                <div class="timeline-container">
+                    <div class="timeline-line-transfer" style="top: 16px; height: ${(route.secondLegStops.length + 1) * 45}px;"></div>
+                    
+                    <!-- Transfer station (again) -->
+                    <div class="timeline-station">
+                        <div class="station-circle transfer"></div>
+                        <div class="station-name transfer">${route.transferStation} <span style="color:#666; font-size:0.85rem;">(Transfer)</span></div>
+                    </div>
+                    
+                    <!-- Second line stops -->
+                    ${route.secondLegStops.map(stop => `
+                        <div class="timeline-station">
+                            <div class="station-circle ${secondLineClass}"></div>
+                            <div class="station-name">${stop}</div>
+                        </div>
+                    `).join('')}
+                    
+                    <!-- End station -->
+                    <div class="timeline-station">
+                        <div class="station-circle end"></div>
+                        <div class="station-name end">${end} <span style="color:#666; font-size:0.85rem;">(Destination)</span></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    return timelineHTML;
+}
+
+// ==================== INITIALIZE APP ====================
+document.addEventListener('DOMContentLoaded', function() {
+    // Start clock updates
+    updateClock();
+    setInterval(updateClock, 1000);
+    
+    // Make clock clickable
+    document.getElementById('gpc-clock').addEventListener('click', function() {
+        window.open('https://www.gpc364.com/p/today.html?m=1&m=1', '_blank');
+    });
+    
+    // Initialize stations
+    const line1El = document.getElementById('line1-stations');
+    const line2El = document.getElementById('line2-stations');
+    const startSelect = document.getElementById('start-station');
+    const endSelect = document.getElementById('end-station');
+    
+    // Populate Line 1 stations
+    metroData.lines[0].stations.forEach(station => {
+        const stationEl = document.createElement('span');
+        stationEl.className = 'station';
+        stationEl.textContent = station;
+        stationEl.dataset.name = station;
+        stationEl.dataset.line = 1;
+        line1El.appendChild(stationEl);
+        
+        const option = document.createElement('option');
+        option.value = station;
+        option.textContent = station;
+        startSelect.appendChild(option.cloneNode(true));
+        endSelect.appendChild(option.cloneNode(true));
+    });
+    
+    // Populate Line 2 stations
+    metroData.lines[1].stations.forEach(station => {
+        const stationEl = document.createElement('span');
+        stationEl.className = 'station';
+        stationEl.textContent = station;
+        stationEl.dataset.name = station;
+        stationEl.dataset.line = 2;
+        line2El.appendChild(stationEl);
+        
+        if (!metroData.lines[0].stations.includes(station)) {
+            const option = document.createElement('option');
+            option.value = station;
+            option.textContent = station;
+            startSelect.appendChild(option.cloneNode(true));
+            endSelect.appendChild(option.cloneNode(true));
+        }
+    });
+    
+    // Update departure time display
+    function updateDepartureDisplay() {
+        const data = getGPCClock();
+        const hour = parseInt(data.time.split(':')[0]);
+        const minute = parseInt(data.time.split(':')[1]);
+        
+        const formattedHour = hour;
+        const formattedMinute = String(minute).padStart(2, '0');
+        const periodTag = `<span class="period-tag ${data.periodClass}">${data.period}</span>`;
+        
+        document.getElementById('departure-display').innerHTML = `${formattedHour}:${formattedMinute} ${periodTag}`;
+    }
+    
+    // Set initial departure display
+    setTimeout(updateDepartureDisplay, 100);
+    setInterval(updateDepartureDisplay, 60000);
+    
+    // Set demo values
+    setTimeout(() => {
+        startSelect.value = "Didube";
+        endSelect.value = "Medical University";
+    }, 500);
+    
+    // Station click handlers
+    document.querySelectorAll('.station').forEach(station => {
+        station.addEventListener('click', function() {
+            const stationName = this.dataset.name;
+            
+            if (!startSelect.value) {
+                startSelect.value = stationName;
+            } else if (!endSelect.value) {
+                endSelect.value = stationName;
+            } else {
+                if (confirm(`Set "${stationName}" as start station?`)) {
+                    startSelect.value = stationName;
+                } else {
+                    endSelect.value = stationName;
+                }
+            }
+            
+            document.querySelectorAll('.station').forEach(s => s.style.background = '#f1f3f4');
+            this.style.background = '#3498db';
+            this.style.color = 'white';
+        });
+    });
+    
+    // Route calculation
+    document.getElementById('calculate-route').addEventListener('click', function() {
+        const start = startSelect.value;
+        const end = endSelect.value;
+        
+        if (!start || !end) {
+            alert("Please select both start and destination stations.");
+            return;
+        }
+        
+        if (start === end) {
+            alert("Start and destination cannot be the same.");
+            return;
+        }
+        
+        // Get current GPC time
+        const data = getGPCClock();
+        const [hours, minutes] = data.time.split(':').map(Number);
+        
+        const formattedHour = hours;
+        const formattedMinute = String(minutes).padStart(2, '0');
+        const departureTime = `${formattedHour}:${formattedMinute}`;
+        
+        // Get route details
+        const route = getRouteWithStops(start, end);
+        const travelTime = 20;
+        
+        // Calculate arrival time
+        const totalMinutes = hours * 60 + minutes + travelTime;
+        const arrivalHours = Math.floor(totalMinutes / 60) % 24;
+        const arrivalMinutes = Math.floor(totalMinutes % 60);
+        
+        const formattedArrivalHour = arrivalHours;
+        const formattedArrivalMinute = String(arrivalMinutes).padStart(2, '0');
+        const arrivalTime = `${formattedArrivalHour}:${formattedArrivalMinute}`;
+        
+        // Generate route HTML
+        let routeHTML = '';
+        
+        // Create metro timeline
+        routeHTML += createMetroTimeline(route, start, end);
+        
+        // Add travel summary
+        routeHTML += `
+            <div class="route-summary">
+                <div class="route-summary-row">
+                    <span><strong>Travel Time:</strong></span>
+                    <span>${travelTime} minutes</span>
+                </div>
+                <div class="route-summary-row">
+                    <span><strong>Current GPC Period:</strong></span>
+                    <span><span class="period-tag ${data.periodClass}">${data.period}</span></span>
+                </div>
+                <div class="route-summary-row">
+                    <span><strong>Departure:</strong></span>
+                    <span>${departureTime} Sierra</span>
+                </div>
+                <div class="route-summary-row">
+                    <span><strong>Arrival:</strong></span>
+                    <span>${arrivalTime} Sierra</span>
+                </div>
+                ${route.type === 'direct' ? 
+                    `<div class="route-summary-row">
+                        <span><strong>Total Stops:</strong></span>
+                        <span>${route.stops.length}</span>
+                    </div>` : 
+                    `<div class="route-summary-row">
+                        <span><strong>Total Stops:</strong></span>
+                        <span>${route.firstLegStops.length + route.secondLegStops.length}</span>
+                    </div>`
+                }
+                <div class="route-summary-row">
+                    <span><strong>Route Type:</strong></span>
+                    <span>${route.type === 'direct' ? 'Direct' : 'Transfer'}</span>
+                </div>
+            </div>
+        `;
+        
+        // Display results
+        document.getElementById('route-details').innerHTML = routeHTML;
+        document.getElementById('results-section').classList.add('active');
+        
+        // Update Google Maps button
+        const startCoords = stationCoordinates[start];
+        const endCoords = stationCoordinates[end];
+        
+        if (startCoords && endCoords) {
+            const mapsUrl = `https://www.google.com/maps/dir/${startCoords.lat},${startCoords.lng}/${endCoords.lat},${endCoords.lng}`;
+            document.getElementById('google-maps-btn').href = mapsUrl;
+            document.getElementById('google-maps-btn').target = '_blank';
+        } else {
+            document.getElementById('google-maps-btn').href = `https://www.google.com/maps/search/${start}+Metro+Station+Tbilisi/`;
+            document.getElementById('google-maps-btn').target = '_blank';
+        }
+        
+        // Scroll to results
+        document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
+    });
+});
+
+// Station coordinates for Google Maps
+const stationCoordinates = {
+    "Akhmeteli Teatri": { lat: 41.7664, lng: 44.7789 },
+    "Sarajishvili": { lat: 41.7608, lng: 44.7742 },
+    "Guramishvili": { lat: 41.7542, lng: 44.7683 },
+    "Ghrmaghele": { lat: 41.7475, lng: 44.7608 },
+    "Didube": { lat: 41.7425, lng: 44.7492 },
+    "Medical University": { lat: 41.7383, lng: 44.7433 },
+    "Vazha Pshavela": { lat: 41.7325, lng: 44.7389 },
+    "Republic Square": { lat: 41.7275, lng: 44.7342 },
+    "Liberty Square": { lat: 41.7225, lng: 44.7292 },
+    "Avlabari": { lat: 41.7175, lng: 44.7242 },
+    "300 Aragveli": { lat: 41.7125, lng: 44.7192 },
+    "Isani": { lat: 41.7075, lng: 44.7142 },
+    "Samgori": { lat: 41.7025, lng: 44.7092 },
+    "Varketili III": { lat: 41.6975, lng: 44.7042 },
+    "Varketili II": { lat: 41.6925, lng: 44.6992 },
+    "Varketili": { lat: 41.6875, lng: 44.6942 },
+    "Delisi": { lat: 41.7272, lng: 44.7550 },
+    "University": { lat: 41.7222, lng: 44.7483 },
+    "Rustaveli": { lat: 41.7172, lng: 44.7417 },
+    "Tavisuplebis Moedani": { lat: 41.7122, lng: 44.7350 },
+    "Samedicino Universiteti": { lat: 41.7072, lng: 44.7283 },
+    "Saburtalo": { lat: 41.7022, lng: 44.7217 }
+};
+</script>
+</body>
+</html>
