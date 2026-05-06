@@ -371,6 +371,7 @@
             padding: 20px;
             border-radius: 8px;
             margin-top: 20px;
+            position: relative;
         }
         
         .route-step {
@@ -394,6 +395,7 @@
             border-radius: 10px;
             padding: 20px;
             border: 1px solid #e9ecef;
+            position: relative;
         }
         
         .metro-timeline-header {
@@ -419,7 +421,7 @@
             top: 16px;
             bottom: 16px;
             width: 2px;
-            background: linear-gradient(to bottom, #da291c 0%, #0066b3 100%);
+            background: #e9ecef;
             z-index: 1;
         }
         
@@ -438,6 +440,7 @@
             align-items: center;
             margin-bottom: 25px;
             z-index: 2;
+            cursor: pointer;
         }
         
         .timeline-station:last-child {
@@ -453,6 +456,32 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             position: relative;
             z-index: 3;
+            transition: all 0.3s ease;
+        }
+        
+        .station-circle.completed {
+            background: #2ecc71 !important;
+            border-color: #27ae60 !important;
+            box-shadow: 0 0 8px rgba(46, 204, 113, 0.4);
+        }
+        
+        .station-circle.current {
+            background: #f1c40f !important;
+            border-color: #f39c12 !important;
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.8);
+            transform: scale(1.2);
+        }
+        
+        .station-circle.passed {
+            background: #2ecc71 !important;
+            border-color: #27ae60 !important;
+            box-shadow: 0 0 8px rgba(46, 204, 113, 0.4);
+            transform: scale(1.1);
+        }
+        
+        .station-circle.clickable:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
         }
         
         /* Special circles */
@@ -494,6 +523,31 @@
             color: #2c3e50;
             flex-grow: 1;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .station-name:hover {
+            background: #e9ecef;
+        }
+        
+        .station-name.completed {
+            background: #d5f4e6;
+            border-color: #a3e4c8;
+            color: #196f3d;
+        }
+        
+        .station-name.current {
+            background: #fff8e1;
+            border-color: #ffd54f;
+            color: #e65100;
+            font-weight: 600;
+        }
+        
+        .station-name.passed {
+            background: #d5f4e6;
+            border-color: #a3e4c8;
+            color: #196f3d;
         }
         
         .station-name.start {
@@ -510,6 +564,17 @@
             background: #fff3e0;
             border-color: #ffe0b2;
             font-weight: 600;
+        }
+        
+        /* Progress indicator */
+        .metro-progress {
+            position: absolute;
+            left: 14px;
+            top: 16px;
+            width: 2px;
+            background: linear-gradient(to bottom, #2ecc71 0%, #3498db 100%);
+            z-index: 2;
+            transition: height 0.3s ease;
         }
         
         /* Line indicator */
@@ -564,6 +629,55 @@
             border-bottom: none;
         }
         
+        /* Journey status */
+        .journey-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .status-info {
+            flex: 1;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+        
+        .status-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .time-indicator {
+            padding: 6px 12px;
+            background: #3498db;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        /* Click instructions */
+        .click-instructions {
+            margin-top: 15px;
+            padding: 10px 15px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            border: 1px solid #bbdefb;
+            font-size: 0.9rem;
+            color: #1565c0;
+            text-align: center;
+        }
+        
         /* Responsive */
         @media (max-width: 600px) {
             .container {
@@ -595,6 +709,11 @@
                 margin-left: 15px;
                 padding: 6px 10px;
                 font-size: 0.9rem;
+            }
+            
+            .journey-status {
+                flex-direction: column;
+                gap: 10px;
             }
         }
     </style>
@@ -679,9 +798,32 @@
         <!-- Results Section -->
         <div class="results-section" id="results-section">
             <h2 class="section-title" data-i18n="yourRoute">Your Metro Route</h2>
+            
+            <!-- Journey Status -->
+            <div class="journey-status" id="journey-status" style="display: none;">
+                <div class="status-info">
+                    <div class="status-label">Current Position</div>
+                    <div class="status-value" id="current-position">Start station</div>
+                </div>
+                <div class="status-info">
+                    <div class="status-label">Time to Destination</div>
+                    <div class="status-value" id="time-to-dest">20 min</div>
+                </div>
+                <div class="status-info">
+                    <div class="status-label">Time Elapsed</div>
+                    <div class="time-indicator" id="elapsed-time">0 min</div>
+                </div>
+            </div>
+            
+            <!-- Click Instructions -->
+            <div class="click-instructions" id="click-instructions" style="display: none;">
+                💡 <strong>Click any station</strong> to set it as your current position
+            </div>
+            
             <div class="route-details" id="route-details">
                 <!-- Route details populated by JS -->
             </div>
+            
             <a href="#" class="maps-btn" id="google-maps-btn" data-i18n="openMaps">🗺️ Open Google Maps</a>
         </div>
         
@@ -707,6 +849,13 @@
     </div>
 
 <script>
+// ==================== TRACKING SYSTEM ====================
+let currentJourney = null;
+let currentPosition = 0;
+let startTime = null;
+let intervalTimer = null;
+let stationTimes = [];
+
 // ==================== LANGUAGE SYSTEM ====================
 const translations = {
     en: {
@@ -744,7 +893,8 @@ const translations = {
         lastTrain: "• <strong>Last train:</strong> 18:00 <span class='period-tag period-echo'>Echo</span>",
         fare: "• <strong>Fare:</strong> 1 GEL per ride",
         transfers: "• <strong>Free transfers</strong> between lines",
-        contact: "• <strong>Contact:</strong> +995 32 2 34 56 78"
+        contact: "• <strong>Contact:</strong> +995 32 2 34 56 78",
+        clickInstructions: "💡 <strong>Click any station</strong> to set it as your current position"
     },
     ka: {
         gpcLabel: "GPC უნივერსალური დრო",
@@ -781,7 +931,8 @@ const translations = {
         lastTrain: "• <strong>უკანასკნელი მატარებელი:</strong> 18:00 <span class='period-tag period-echo'>ექო</span>",
         fare: "• <strong>სატარიფო:</strong> 1 GEL ერთი მგზავრობისთვის",
         transfers: "• <strong>უფასო გადაჯდომა</strong> ხაზებს შორის",
-        contact: "• <strong>კონტაქტი:</strong> +995 32 2 34 56 78"
+        contact: "• <strong>კონტაქტი:</strong> +995 32 2 34 56 78",
+        clickInstructions: "💡 <strong>დააწკაპუნეთ ნებისმიერ სადგურზე</strong> რომ დააყენოთ იგი მიმდინარე პოზიციად"
     },
     ru: {
         gpcLabel: "УНИВЕРСАЛЬНОЕ ВРЕМЯ GPC",
@@ -818,7 +969,8 @@ const translations = {
         lastTrain: "• <strong>Последний поезд:</strong> 18:00 <span class='period-tag period-echo'>Эхо</span>",
         fare: "• <strong>Стоимость:</strong> 1 GEL за поездку",
         transfers: "• <strong>Бесплатные пересадки</strong> между линиями",
-        contact: "• <strong>Контакт:</strong> +995 32 2 34 56 78"
+        contact: "• <strong>Контакт:</strong> +995 32 2 34 56 78",
+        clickInstructions: "💡 <strong>Нажмите на любую станцию</strong> чтобы установить её как текущую позицию"
     }
 };
 
@@ -918,7 +1070,8 @@ const metroData = {
                 "Didube", "Medical University", "Vazha Pshavela", "Republic Square",
                 "Liberty Square", "Avlabari", "300 Aragveli", "Isani",
                 "Samgori", "Varketili III", "Varketili II", "Varketili"
-            ]
+            ],
+            times: [3, 2, 3, 3, 2, 3, 3, 2, 3, 2, 3, 3, 3, 2, 3] // minutes between stations
         },
         {
             id: 2,
@@ -927,10 +1080,303 @@ const metroData = {
             stations: [
                 "Vazha Pshavela", "Delisi", "University", "Rustaveli",
                 "Tavisuplebis Moedani", "Samedicino Universiteti", "Saburtalo"
-            ]
+            ],
+            times: [4, 3, 4, 3, 4, 3] // minutes between stations
         }
     ]
 };
+
+// ==================== TRACKING FUNCTIONS ====================
+function initializeJourneyTracking(route, totalTravelTime) {
+    // Store journey info
+    stationTimes = calculateStationTimes(route);
+    currentJourney = {
+        route: route,
+        totalTravelTime: totalTravelTime,
+        stations: route.allStations || [],
+        stationTimes: stationTimes,
+        totalStations: (route.allStations || []).length,
+        startTime: Date.now()
+    };
+    
+    currentPosition = 0;
+    startTime = Date.now();
+    
+    // Show journey status and instructions
+    document.getElementById('journey-status').style.display = 'flex';
+    document.getElementById('click-instructions').style.display = 'block';
+    document.getElementById('click-instructions').innerHTML = translations[currentLang].clickInstructions;
+    
+    updateJourneyStatus();
+    updateAllStationHighlighting();
+    
+    // Start time update interval
+    if (intervalTimer) clearInterval(intervalTimer);
+    intervalTimer = setInterval(updateJourneyStatus, 60000); // Update every minute
+    
+    return currentJourney;
+}
+
+function calculateStationTimes(route) {
+    const stationTimes = [];
+    let cumulativeTime = 0;
+    
+    if (route.type === 'direct') {
+        const lineTimes = route.line === 1 ? metroData.lines[0].times : metroData.lines[1].times;
+        const lineStations = route.line === 1 ? metroData.lines[0].stations : metroData.lines[1].stations;
+        
+        // Find the direction (forward or reverse)
+        const startIndex = lineStations.indexOf(route.allStations[0]);
+        const endIndex = lineStations.indexOf(route.allStations[route.allStations.length - 1]);
+        const isForward = startIndex < endIndex;
+        
+        // Add start station at 0 minutes
+        stationTimes.push({
+            station: route.allStations[0],
+            cumulativeTime: 0,
+            stationIndex: 0
+        });
+        
+        // Calculate times for each subsequent station
+        for (let i = 1; i < route.allStations.length; i++) {
+            let timeToNext;
+            
+            if (isForward) {
+                // Forward direction
+                timeToNext = lineTimes[startIndex + i - 1] || 3;
+            } else {
+                // Reverse direction - need to get times in reverse order
+                const reverseIndex = startIndex - i;
+                timeToNext = lineTimes[reverseIndex] || 3;
+            }
+            
+            cumulativeTime += timeToNext;
+            
+            stationTimes.push({
+                station: route.allStations[i],
+                cumulativeTime: cumulativeTime,
+                stationIndex: i
+            });
+        }
+    } else {
+        // For transfer routes, combine times from both lines
+        const firstLineTimes = route.firstLine === 1 ? metroData.lines[0].times : metroData.lines[1].times;
+        const secondLineTimes = route.secondLine === 1 ? metroData.lines[0].times : metroData.lines[1].times;
+        
+        const firstLineStations = route.firstLine === 1 ? metroData.lines[0].stations : metroData.lines[1].stations;
+        const secondLineStations = route.secondLine === 1 ? metroData.lines[0].stations : metroData.lines[1].stations;
+        
+        const startIndex = firstLineStations.indexOf(route.allStations[0]);
+        const transferIndex1 = firstLineStations.indexOf(route.transferStation);
+        const transferIndex2 = secondLineStations.indexOf(route.transferStation);
+        const endIndex = secondLineStations.indexOf(route.allStations[route.allStations.length - 1]);
+        
+        // First leg stations
+        stationTimes.push({
+            station: route.allStations[0],
+            cumulativeTime: 0,
+            stationIndex: 0
+        });
+        
+        // Calculate if first leg is forward or reverse
+        const firstLegForward = startIndex < transferIndex1;
+        
+        // Stations before transfer
+        for (let i = 1; i <= route.firstLegStops.length; i++) {
+            let timeToNext;
+            
+            if (firstLegForward) {
+                timeToNext = firstLineTimes[startIndex + i - 1] || 3;
+            } else {
+                timeToNext = firstLineTimes[transferIndex1 + i] || 3;
+            }
+            
+            cumulativeTime += timeToNext;
+            
+            stationTimes.push({
+                station: route.allStations[i],
+                cumulativeTime: cumulativeTime,
+                stationIndex: i
+            });
+        }
+        
+        // Transfer station
+        cumulativeTime += 2; // 2 minutes for transfer
+        stationTimes.push({
+            station: route.transferStation,
+            cumulativeTime: cumulativeTime,
+            stationIndex: route.firstLegStops.length + 1,
+            isTransfer: true
+        });
+        
+        // Calculate if second leg is forward or reverse
+        const secondLegForward = transferIndex2 < endIndex;
+        
+        // Second leg stations
+        for (let i = 1; i <= route.secondLegStops.length; i++) {
+            let timeToNext;
+            
+            if (secondLegForward) {
+                timeToNext = secondLineTimes[transferIndex2 + i - 1] || 3;
+            } else {
+                timeToNext = secondLineTimes[endIndex + i - 1] || 3;
+            }
+            
+            cumulativeTime += timeToNext;
+            
+            stationTimes.push({
+                station: route.allStations[route.firstLegStops.length + 1 + i],
+                cumulativeTime: cumulativeTime,
+                stationIndex: route.firstLegStops.length + 1 + i
+            });
+        }
+    }
+    
+    return stationTimes;
+}
+
+function updateJourneyStatus() {
+    if (!currentJourney) return;
+    
+    // Get elapsed time based on current position
+    const elapsedMinutes = stationTimes[currentPosition]?.cumulativeTime || 0;
+    const totalTravelTime = currentJourney.totalTravelTime;
+    const remainingMinutes = Math.max(0, totalTravelTime - elapsedMinutes);
+    
+    // Update display
+    const currentStation = currentJourney.stations[currentPosition] || 'Start station';
+    document.getElementById('current-position').textContent = currentStation;
+    
+    document.getElementById('time-to-dest').textContent = `${remainingMinutes} min`;
+    document.getElementById('elapsed-time').textContent = `${elapsedMinutes} min`;
+    
+    // Update progress visualization
+    updateProgressVisualization();
+}
+
+function updateProgressVisualization() {
+    if (!currentJourney) return;
+    
+    // Update progress bars
+    const progressElements = document.querySelectorAll('.metro-progress');
+    const totalStations = currentJourney.totalStations;
+    
+    if (totalStations > 0 && currentPosition >= 0) {
+        const progressPercentage = (currentPosition / (totalStations - 1)) * 100;
+        
+        progressElements.forEach(progress => {
+            const container = progress.parentElement;
+            if (container) {
+                const containerHeight = container.offsetHeight;
+                const progressHeight = (progressPercentage / 100) * containerHeight;
+                progress.style.height = `${progressHeight}px`;
+            }
+        });
+    }
+}
+
+function updateAllStationHighlighting() {
+    if (!currentJourney) return;
+    
+    const stationElements = document.querySelectorAll('.timeline-station');
+    
+    // First, clear all highlighting
+    stationElements.forEach((stationElement, index) => {
+        const circle = stationElement.querySelector('.station-circle');
+        const name = stationElement.querySelector('.station-name');
+        
+        if (circle) {
+            circle.classList.remove('completed', 'current', 'passed');
+            
+            // Reset to original color
+            if (index === 0) {
+                circle.style.background = '#3498db';
+                circle.style.borderColor = '#2980b9';
+            } else if (index === currentJourney.totalStations - 1) {
+                circle.style.background = '#27ae60';
+                circle.style.borderColor = '#219955';
+            } else if (circle.classList.contains('transfer')) {
+                circle.style.background = '#f39c12';
+                circle.style.borderColor = '#e67e22';
+            } else if (circle.classList.contains('line1')) {
+                circle.style.background = '#da291c';
+                circle.style.borderColor = '#c0392b';
+            } else if (circle.classList.contains('line2')) {
+                circle.style.background = '#0066b3';
+                circle.style.borderColor = '#0056a3';
+            } else {
+                // Default color for other stations
+                circle.style.background = '#3498db';
+                circle.style.borderColor = '#2980b9';
+            }
+        }
+        
+        if (name) {
+            name.classList.remove('completed', 'current', 'passed');
+            
+            // Reset to original style
+            if (index === 0) {
+                name.className = 'station-name start';
+            } else if (index === currentJourney.totalStations - 1) {
+                name.className = 'station-name end';
+            } else if (name.classList.contains('transfer')) {
+                name.className = 'station-name transfer';
+            } else {
+                name.className = 'station-name';
+            }
+        }
+    });
+    
+    // Now highlight stations based on current position
+    for (let i = 0; i <= currentPosition; i++) {
+        if (i < stationElements.length) {
+            const stationElement = stationElements[i];
+            const circle = stationElement.querySelector('.station-circle');
+            const name = stationElement.querySelector('.station-name');
+            
+            if (i === currentPosition) {
+                // Current station - yellow highlight
+                if (circle) {
+                    circle.classList.add('current');
+                    circle.style.background = '#f1c40f';
+                    circle.style.borderColor = '#f39c12';
+                }
+                if (name) name.classList.add('current');
+            } else {
+                // Passed stations - green highlight
+                if (circle) {
+                    circle.classList.add('passed');
+                    circle.style.background = '#2ecc71';
+                    circle.style.borderColor = '#27ae60';
+                }
+                if (name) name.classList.add('passed');
+            }
+        }
+    }
+}
+
+function moveToStation(stationIndex) {
+    if (!currentJourney || stationIndex < 0 || stationIndex >= currentJourney.totalStations) return;
+    
+    // Update current position
+    currentPosition = stationIndex;
+    
+    // Update all station highlighting
+    updateAllStationHighlighting();
+    
+    // Update journey status
+    updateJourneyStatus();
+    
+    // Scroll to current station if needed
+    const stationElements = document.querySelectorAll('.timeline-station');
+    const currentStationElement = stationElements[stationIndex];
+    if (currentStationElement) {
+        currentStationElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+    }
+}
 
 // ==================== GET ROUTE WITH STOPS ====================
 function getRouteWithStops(start, end) {
@@ -946,20 +1392,28 @@ function getRouteWithStops(start, end) {
         const endIndex = lineStations.indexOf(end);
         
         if (startIndex < endIndex) {
+            const allStations = [start, ...lineStations.slice(startIndex + 1, endIndex), end];
             return {
                 type: 'direct',
                 line: startLine,
                 direction: 'forward',
                 stops: lineStations.slice(startIndex + 1, endIndex),
-                transferStation: null
+                transferStation: null,
+                allStations: allStations,
+                startIndex: startIndex,
+                endIndex: endIndex
             };
         } else {
+            const allStations = [start, ...lineStations.slice(endIndex + 1, startIndex).reverse(), end];
             return {
                 type: 'direct',
                 line: startLine,
                 direction: 'reverse',
                 stops: lineStations.slice(endIndex + 1, startIndex).reverse(),
-                transferStation: null
+                transferStation: null,
+                allStations: allStations,
+                startIndex: startIndex,
+                endIndex: endIndex
             };
         }
     } else {
@@ -986,13 +1440,26 @@ function getRouteWithStops(start, end) {
             secondLegStops = secondLine.slice(endIndex + 1, transferIndex2).reverse();
         }
         
+        const allStations = [
+            start, 
+            ...firstLegStops, 
+            transferStation, 
+            ...secondLegStops, 
+            end
+        ];
+        
         return {
             type: 'transfer',
             firstLine: startLine,
             secondLine: endLine,
             transferStation: transferStation,
             firstLegStops: firstLegStops,
-            secondLegStops: secondLegStops
+            secondLegStops: secondLegStops,
+            allStations: allStations,
+            startIndex: startIndex,
+            transferIndex1: transferIndex1,
+            transferIndex2: transferIndex2,
+            endIndex: endIndex
         };
     }
 }
@@ -1001,9 +1468,13 @@ function getRouteWithStops(start, end) {
 function createMetroTimeline(route, start, end) {
     let timelineHTML = '';
     
+    // Create progress element
+    const progressHTML = `<div class="metro-progress" style="height: 0px;"></div>`;
+    
     if (route.type === 'direct') {
         const lineClass = route.line === 1 ? 'line1' : 'line2';
         const lineName = route.line === 1 ? 'Line 1 (Red)' : 'Line 2 (Blue)';
+        const stations = route.allStations || [start, ...route.stops, end];
         
         timelineHTML = `
             <div class="metro-timeline">
@@ -1012,27 +1483,24 @@ function createMetroTimeline(route, start, end) {
                     <span>${lineName}</span>
                 </div>
                 <div class="timeline-container">
-                    <div class="timeline-line" style="height: ${(route.stops.length + 1) * 45}px;"></div>
+                    <div class="timeline-line" style="height: ${(stations.length - 1) * 45}px;"></div>
+                    ${progressHTML}
                     
-                    <!-- Start station -->
-                    <div class="timeline-station">
-                        <div class="station-circle start"></div>
-                        <div class="station-name start">${start} <span style="color:#666; font-size:0.85rem;">(Start)</span></div>
-                    </div>
-                    
-                    <!-- Intermediate stops -->
-                    ${route.stops.map(stop => `
-                        <div class="timeline-station">
-                            <div class="station-circle ${lineClass}"></div>
-                            <div class="station-name">${stop}</div>
+                    <!-- Stations -->
+                    ${stations.map((station, index) => {
+                        const circleClass = index === 0 ? 'start' : index === stations.length - 1 ? 'end' : lineClass;
+                        const nameClass = index === 0 ? 'start' : index === stations.length - 1 ? 'end' : '';
+                        
+                        return `
+                        <div class="timeline-station" data-station-index="${index}">
+                            <div class="station-circle ${circleClass}"></div>
+                            <div class="station-name ${nameClass}">
+                                ${station} 
+                                ${index === 0 ? '<span style="color:#666; font-size:0.85rem;">(Start)</span>' : 
+                                  index === stations.length - 1 ? '<span style="color:#666; font-size:0.85rem;">(Destination)</span>' : ''}
+                            </div>
                         </div>
-                    `).join('')}
-                    
-                    <!-- End station -->
-                    <div class="timeline-station">
-                        <div class="station-circle end"></div>
-                        <div class="station-name end">${end} <span style="color:#666; font-size:0.85rem;">(Destination)</span></div>
-                    </div>
+                    `}).join('')}
                 </div>
             </div>
         `;
@@ -1042,6 +1510,9 @@ function createMetroTimeline(route, start, end) {
         const firstLineName = route.firstLine === 1 ? 'Line 1 (Red)' : 'Line 2 (Blue)';
         const secondLineName = route.secondLine === 1 ? 'Line 1 (Red)' : 'Line 2 (Blue)';
         
+        const firstLineStations = [start, ...route.firstLegStops, route.transferStation];
+        const secondLineStations = [route.transferStation, ...route.secondLegStops, end];
+        
         timelineHTML = `
             <!-- First Line -->
             <div class="metro-timeline">
@@ -1050,27 +1521,24 @@ function createMetroTimeline(route, start, end) {
                     <span>${firstLineName}</span>
                 </div>
                 <div class="timeline-container">
-                    <div class="timeline-line" style="top: 16px; height: ${(route.firstLegStops.length + 1) * 45}px;"></div>
+                    <div class="timeline-line" style="top: 16px; height: ${(firstLineStations.length - 1) * 45}px;"></div>
+                    ${progressHTML}
                     
-                    <!-- Start station -->
-                    <div class="timeline-station">
-                        <div class="station-circle start"></div>
-                        <div class="station-name start">${start} <span style="color:#666; font-size:0.85rem;">(Start)</span></div>
-                    </div>
-                    
-                    <!-- First line stops -->
-                    ${route.firstLegStops.map(stop => `
-                        <div class="timeline-station">
-                            <div class="station-circle ${firstLineClass}"></div>
-                            <div class="station-name">${stop}</div>
+                    <!-- First line stations -->
+                    ${firstLineStations.map((station, index) => {
+                        const circleClass = index === 0 ? 'start' : station === route.transferStation ? 'transfer' : firstLineClass;
+                        const nameClass = index === 0 ? 'start' : station === route.transferStation ? 'transfer' : '';
+                        
+                        return `
+                        <div class="timeline-station" data-station-index="${index}">
+                            <div class="station-circle ${circleClass}"></div>
+                            <div class="station-name ${nameClass}">
+                                ${station} 
+                                ${index === 0 ? '<span style="color:#666; font-size:0.85rem;">(Start)</span>' : 
+                                  station === route.transferStation ? '<span style="color:#666; font-size:0.85rem;">(Transfer)</span>' : ''}
+                            </div>
                         </div>
-                    `).join('')}
-                    
-                    <!-- Transfer station -->
-                    <div class="timeline-station">
-                        <div class="station-circle transfer"></div>
-                        <div class="station-name transfer">${route.transferStation} <span style="color:#666; font-size:0.85rem;">(Transfer)</span></div>
-                    </div>
+                    `}).join('')}
                 </div>
             </div>
             
@@ -1086,27 +1554,25 @@ function createMetroTimeline(route, start, end) {
                     <span>${secondLineName}</span>
                 </div>
                 <div class="timeline-container">
-                    <div class="timeline-line-transfer" style="top: 16px; height: ${(route.secondLegStops.length + 1) * 45}px;"></div>
+                    <div class="timeline-line-transfer" style="top: 16px; height: ${(secondLineStations.length - 1) * 45}px;"></div>
+                    ${progressHTML.replace('metro-progress', 'metro-progress')}
                     
-                    <!-- Transfer station (again) -->
-                    <div class="timeline-station">
-                        <div class="station-circle transfer"></div>
-                        <div class="station-name transfer">${route.transferStation} <span style="color:#666; font-size:0.85rem;">(Transfer)</span></div>
-                    </div>
-                    
-                    <!-- Second line stops -->
-                    ${route.secondLegStops.map(stop => `
-                        <div class="timeline-station">
-                            <div class="station-circle ${secondLineClass}"></div>
-                            <div class="station-name">${stop}</div>
+                    <!-- Second line stations -->
+                    ${secondLineStations.map((station, index) => {
+                        const globalIndex = firstLineStations.length - 1 + index;
+                        const circleClass = station === route.transferStation ? 'transfer' : station === end ? 'end' : secondLineClass;
+                        const nameClass = station === route.transferStation ? 'transfer' : station === end ? 'end' : '';
+                        
+                        return `
+                        <div class="timeline-station" data-station-index="${globalIndex}">
+                            <div class="station-circle ${circleClass}"></div>
+                            <div class="station-name ${nameClass}">
+                                ${station} 
+                                ${station === route.transferStation ? '<span style="color:#666; font-size:0.85rem;">(Transfer)</span>' : 
+                                  station === end ? '<span style="color:#666; font-size:0.85rem;">(Destination)</span>' : ''}
+                            </div>
                         </div>
-                    `).join('')}
-                    
-                    <!-- End station -->
-                    <div class="timeline-station">
-                        <div class="station-circle end"></div>
-                        <div class="station-name end">${end} <span style="color:#666; font-size:0.85rem;">(Destination)</span></div>
-                    </div>
+                    `}).join('')}
                 </div>
             </div>
         `;
@@ -1276,7 +1742,58 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Get route details
         const route = getRouteWithStops(start, end);
-        const travelTime = 20;
+        
+        // Calculate realistic travel time
+        let travelTime = 0;
+        
+        if (route.type === 'direct') {
+            const lineTimes = route.line === 1 ? metroData.lines[0].times : metroData.lines[1].times;
+            const startIndex = route.startIndex;
+            const endIndex = route.endIndex;
+            
+            if (startIndex < endIndex) {
+                for (let i = startIndex; i < endIndex; i++) {
+                    travelTime += lineTimes[i] || 3;
+                }
+            } else {
+                for (let i = endIndex; i < startIndex; i++) {
+                    travelTime += lineTimes[i] || 3;
+                }
+            }
+        } else {
+            // First leg
+            const firstLineTimes = route.firstLine === 1 ? metroData.lines[0].times : metroData.lines[1].times;
+            const startIndex = route.startIndex;
+            const transferIndex1 = route.transferIndex1;
+            
+            if (startIndex < transferIndex1) {
+                for (let i = startIndex; i < transferIndex1; i++) {
+                    travelTime += firstLineTimes[i] || 3;
+                }
+            } else {
+                for (let i = transferIndex1; i < startIndex; i++) {
+                    travelTime += firstLineTimes[i] || 3;
+                }
+            }
+            
+            // Transfer time
+            travelTime += 2; // 2 minutes for transfer
+            
+            // Second leg
+            const secondLineTimes = route.secondLine === 1 ? metroData.lines[0].times : metroData.lines[1].times;
+            const transferIndex2 = route.transferIndex2;
+            const endIndex = route.endIndex;
+            
+            if (transferIndex2 < endIndex) {
+                for (let i = transferIndex2; i < endIndex; i++) {
+                    travelTime += secondLineTimes[i] || 3;
+                }
+            } else {
+                for (let i = endIndex; i < transferIndex2; i++) {
+                    travelTime += secondLineTimes[i] || 3;
+                }
+            }
+        }
         
         // Calculate arrival time
         const totalMinutes = hours * 60 + minutes + travelTime;
@@ -1335,6 +1852,45 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('route-details').innerHTML = routeHTML;
         document.getElementById('route-details').appendChild(addGPCTodayLink());
         document.getElementById('results-section').classList.add('active');
+        
+        // Initialize journey tracking
+        setTimeout(() => {
+            initializeJourneyTracking(route, travelTime);
+            
+            // Add click handlers to all timeline stations
+            const timelineStations = document.querySelectorAll('.timeline-station');
+            timelineStations.forEach((stationElement) => {
+                const stationIndex = parseInt(stationElement.dataset.stationIndex);
+                
+                // Make entire station row clickable
+                stationElement.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('station-circle') || 
+                        e.target.classList.contains('station-name') ||
+                        e.target === this) {
+                        moveToStation(stationIndex);
+                    }
+                });
+                
+                // Also make individual elements clickable
+                const circle = stationElement.querySelector('.station-circle');
+                const name = stationElement.querySelector('.station-name');
+                
+                if (circle) {
+                    circle.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        moveToStation(stationIndex);
+                    });
+                }
+                
+                if (name) {
+                    name.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        moveToStation(stationIndex);
+                    });
+                }
+            });
+            
+        }, 100);
         
         // Update Google Maps button
         const startCoords = stationCoordinates[start];
